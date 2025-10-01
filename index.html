@@ -5,75 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تطبيق الدردشة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
-        import { 
-            getAuth, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            signOut,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-        import { 
-            getFirestore,
-            collection,
-            addDoc,
-            query,
-            where,
-            getDocs,
-            onSnapshot,
-            orderBy,
-            serverTimestamp,
-            doc,
-            setDoc,
-            getDoc,
-            updateDoc,
-            arrayUnion,
-            arrayRemove
-        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCxa_EPngafJxa_sm7dYkFLZqaNKwGeXs8",
-            authDomain: "chat-744.firebaseapp.com",
-            projectId: "chat-744",
-            storageBucket: "chat-744.firebasestorage.app",
-            messagingSenderId: "549484345223",
-            appId: "1:549484345223:web:cc8a7732679607847ec522",
-            measurementId: "G-T97D8WXQ8V"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // جعل المتغيرات متاحة بشكل عام
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firebaseDb = db;
-        window.firebaseGoogleAuthProvider = GoogleAuthProvider;
-        window.firebaseSignInWithPopup = signInWithPopup;
-        window.firebaseSignOut = signOut;
-        window.firebaseOnAuthStateChanged = onAuthStateChanged;
-        window.firebaseCollection = collection;
-        window.firebaseAddDoc = addDoc;
-        window.firebaseQuery = query;
-        window.firebaseWhere = where;
-        window.firebaseGetDocs = getDocs;
-        window.firebaseOnSnapshot = onSnapshot;
-        window.firebaseOrderBy = orderBy;
-        window.firebaseServerTimestamp = serverTimestamp;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
-        window.firebaseUpdateDoc = updateDoc;
-        window.firebaseArrayUnion = arrayUnion;
-        window.firebaseArrayRemove = arrayRemove;
-    </script>
+    <!-- استخدام Firebase SDK من CDN بدلاً من النوع Module -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -405,6 +340,9 @@
         .add-friend-container {
             padding: 15px;
             background-color: white;
+            border-radius: 10px;
+            margin: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .add-friend-input {
@@ -481,6 +419,7 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s;
+            max-width: 300px;
         }
 
         .notification.show {
@@ -493,6 +432,15 @@
 
         .notification.error {
             background-color: var(--error-color);
+        }
+
+        .error-details {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
         }
 
         /* التكيف مع الشاشات الصغيرة */
@@ -523,6 +471,20 @@
             margin-left: 15px;
             cursor: pointer;
         }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -533,8 +495,14 @@
             <p>تطبيق دردشة آمن وسريع يمكنك من التواصل مع أصدقائك في أي وقت</p>
             <button id="googleLogin" class="google-login-btn">
                 <i class="fab fa-google"></i>
-                تسجيل الدخول باستخدام جيميل
+                <span id="loginText">تسجيل الدخول باستخدام جيميل</span>
+                <div id="loginSpinner" class="loading hidden"></div>
             </button>
+            <div id="loginError" class="error-details hidden"></div>
+            <div class="firebase-status" style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; font-size: 12px;">
+                <h4>حالة Firebase:</h4>
+                <div id="firebaseStatus">جاري التحقق...</div>
+            </div>
         </div>
     </div>
 
@@ -605,16 +573,14 @@
     </div>
 
     <!-- نافذة إضافة أصدقاء -->
-    <div id="addFriendModal" class="hidden">
-        <div class="add-friend-container">
-            <h3>إضافة صديق</h3>
-            <div class="add-friend-input">
-                <input type="email" id="friendEmail" placeholder="البريد الإلكتروني للصديق">
-                <button id="sendFriendRequest">إرسال طلب</button>
-            </div>
-            <div class="users-list" id="usersList">
-                <!-- سيتم ملء قائمة المستخدمين ديناميكيًا -->
-            </div>
+    <div id="addFriendModal" class="add-friend-container hidden">
+        <h3>إضافة صديق</h3>
+        <div class="add-friend-input">
+            <input type="email" id="friendEmail" placeholder="البريد الإلكتروني للصديق">
+            <button id="sendFriendRequest">إرسال طلب</button>
+        </div>
+        <div class="users-list" id="usersList">
+            <!-- سيتم ملء قائمة المستخدمين ديناميكيًا -->
         </div>
     </div>
 
@@ -622,10 +588,38 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // تهيئة Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxa_EPngafJxa_sm7dYkFLZqaNKwGeXs8",
+            authDomain: "chat-744.firebaseapp.com",
+            projectId: "chat-744",
+            storageBucket: "chat-744.firebasestorage.app",
+            messagingSenderId: "549484345223",
+            appId: "1:549484345223:web:cc8a7732679607847ec522",
+            measurementId: "G-T97D8WXQ8V"
+        };
+
+        // محاولة تهيئة Firebase
+        try {
+            // تهيئة Firebase
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase initialized successfully");
+            document.getElementById('firebaseStatus').textContent = "✅ تم التهيئة بنجاح";
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            document.getElementById('firebaseStatus').textContent = "❌ خطأ في التهيئة: " + error.message;
+        }
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         // عناصر DOM
         const loginScreen = document.getElementById('loginScreen');
         const chatApp = document.getElementById('chatApp');
         const googleLoginBtn = document.getElementById('googleLogin');
+        const loginText = document.getElementById('loginText');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const loginError = document.getElementById('loginError');
         const userName = document.getElementById('userName');
         const userAvatar = document.getElementById('userAvatar');
         const messagesContainer = document.getElementById('messagesContainer');
@@ -659,19 +653,25 @@
         // تسجيل الدخول باستخدام جيميل
         googleLoginBtn.addEventListener('click', async () => {
             try {
-                const provider = new window.firebaseGoogleAuthProvider();
-                const result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+                // إظهار حالة التحميل
+                loginText.textContent = "جاري تسجيل الدخول...";
+                loginSpinner.classList.remove('hidden');
+                loginError.classList.add('hidden');
+                googleLoginBtn.disabled = true;
+
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await firebase.auth().signInWithPopup(provider);
                 currentUser = result.user;
                 
                 // حفظ معلومات المستخدم في Firestore
-                await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
+                await db.collection("users").doc(currentUser.uid).set({
                     uid: currentUser.uid,
                     displayName: currentUser.displayName,
                     email: currentUser.email,
                     photoURL: currentUser.photoURL,
                     friends: [],
                     friendRequests: [],
-                    createdAt: window.firebaseServerTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
                 
                 showChatApp();
@@ -679,14 +679,39 @@
                 showNotification('تم تسجيل الدخول بنجاح!', 'success');
             } catch (error) {
                 console.error("خطأ في تسجيل الدخول:", error);
-                showNotification('حدث خطأ أثناء تسجيل الدخول', 'error');
+                
+                // عرض تفاصيل الخطأ للمستخدم
+                let errorMessage = 'حدث خطأ أثناء تسجيل الدخول. ';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    errorMessage = 'تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة لهذا الموقع.';
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'تم إغلاق نافذة التسجيل. يرجى المحاولة مرة أخرى.';
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    errorMessage = 'هذا النطاق غير مصرح به. يرجى التحقق من إعدادات Firebase.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMessage = 'خطأ في الشبكة. يرجى التحقق من اتصال الإنترنت.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                // عرض تفاصيل إضافية للمطور
+                loginError.textContent = `كود الخطأ: ${error.code} | الرسالة: ${error.message}`;
+                loginError.classList.remove('hidden');
+            } finally {
+                // إعادة تعيين واجهة المستخدم
+                loginText.textContent = "تسجيل الدخول باستخدام جيميل";
+                loginSpinner.classList.add('hidden');
+                googleLoginBtn.disabled = false;
             }
         });
 
         // تسجيل الخروج
         logoutBtn.addEventListener('click', async () => {
             try {
-                await window.firebaseSignOut(window.firebaseAuth);
+                await firebase.auth().signOut();
                 showNotification('تم تسجيل الخروج بنجاح', 'success');
             } catch (error) {
                 console.error("خطأ في تسجيل الخروج:", error);
@@ -695,17 +720,19 @@
         });
 
         // التحقق من حالة المصادقة
-        window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
                 showChatApp();
                 loadUserData();
+                document.getElementById('firebaseStatus').textContent = "✅ تم تسجيل الدخول: " + user.email;
             } else {
                 currentUser = null;
                 showLoginScreen();
                 // إلغاء الاشتراك في جميع المستمعين
                 unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
                 unsubscribeFunctions = [];
+                document.getElementById('firebaseStatus').textContent = "✅ تم التهيئة بنجاح - في انتظار تسجيل الدخول";
             }
         });
 
@@ -713,31 +740,35 @@
         async function loadUserData() {
             if (!currentUser) return;
             
-            // تحميل بيانات المستخدم من Firestore
-            const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                friends = userData.friends || [];
-                friendRequests = userData.friendRequests || [];
+            try {
+                // تحميل بيانات المستخدم من Firestore
+                const userDoc = await db.collection("users").doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    friends = userData.friends || [];
+                    friendRequests = userData.friendRequests || [];
+                    
+                    // تحديث واجهة المستخدم
+                    loadFriends();
+                    loadFriendRequests();
+                    loadChats();
+                    loadUsers();
+                }
                 
-                // تحديث واجهة المستخدم
-                loadFriends();
-                loadFriendRequests();
-                loadChats();
-                loadUsers();
+                // الاستماع للتحديثات في الوقت الفعلي
+                setupRealtimeListeners();
+            } catch (error) {
+                console.error("خطأ في تحميل بيانات المستخدم:", error);
+                showNotification('حدث خطأ في تحميل البيانات', 'error');
             }
-            
-            // الاستماع للتحديثات في الوقت الفعلي
-            setupRealtimeListeners();
         }
 
         // إعداد المستمعين في الوقت الفعلي
         function setupRealtimeListeners() {
             // الاستماع لتحديثات المستخدم
-            const userUnsubscribe = window.firebaseOnSnapshot(
-                window.firebaseDoc(window.firebaseDb, "users", currentUser.uid),
-                (doc) => {
-                    if (doc.exists()) {
+            const userUnsubscribe = db.collection("users").doc(currentUser.uid)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
                         const userData = doc.data();
                         friends = userData.friends || [];
                         friendRequests = userData.friendRequests || [];
@@ -751,17 +782,16 @@
                             loadChats();
                         }
                     }
-                }
-            );
+                }, (error) => {
+                    console.error("خطأ في الاستماع لتحديثات المستخدم:", error);
+                });
             unsubscribeFunctions.push(userUnsubscribe);
             
             // الاستماع لتحديثات المحادثات
-            const chatsQuery = window.firebaseQuery(
-                window.firebaseCollection(window.firebaseDb, "chats"),
-                window.firebaseWhere("participants", "array-contains", currentUser.uid)
-            );
+            const chatsQuery = db.collection("chats")
+                .where("participants", "array-contains", currentUser.uid);
             
-            const chatsUnsubscribe = window.firebaseOnSnapshot(chatsQuery, (snapshot) => {
+            const chatsUnsubscribe = chatsQuery.onSnapshot((snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added" || change.type === "modified") {
                         const chat = { id: change.doc.id, ...change.doc.data() };
@@ -783,6 +813,8 @@
                         }
                     }
                 });
+            }, (error) => {
+                console.error("خطأ في الاستماع لتحديثات المحادثات:", error);
             });
             unsubscribeFunctions.push(chatsUnsubscribe);
         }
@@ -798,9 +830,8 @@
                 return;
             }
             
+            // محاكاة بيانات الأصدقاء (في تطبيق حقيقي، سنجلب البيانات من Firestore)
             friends.forEach(friendId => {
-                // في تطبيق حقيقي، سنقوم بجلب بيانات الصديق من Firestore
-                // هنا سنقوم بمحاكاة البيانات
                 const friend = {
                     id: friendId,
                     name: `صديق ${friendId.substring(0, 5)}`,
@@ -887,17 +918,21 @@
 
         // تحميل المستخدمين (لإضافة أصدقاء)
         async function loadUsers() {
-            const usersSnapshot = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, "users"));
-            users = [];
-            usersSnapshot.forEach(doc => {
-                if (doc.id !== currentUser.uid) {
-                    users.push({ id: doc.id, ...doc.data() });
+            try {
+                const usersSnapshot = await db.collection("users").get();
+                users = [];
+                usersSnapshot.forEach(doc => {
+                    if (doc.id !== currentUser.uid) {
+                        users.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                
+                // تحديث واجهة المستخدم إذا كانت نافذة إضافة الأصدقاء مفتوحة
+                if (!addFriendModal.classList.contains('hidden')) {
+                    renderUsersList();
                 }
-            });
-            
-            // تحديث واجهة المستخدم إذا كانت نافذة إضافة الأصدقاء مفتوحة
-            if (!addFriendModal.classList.contains('hidden')) {
-                renderUsersList();
+            } catch (error) {
+                console.error("خطأ في تحميل المستخدمين:", error);
             }
         }
 
@@ -974,15 +1009,15 @@
         async function sendFriendRequest(friendId) {
             try {
                 // الحصول على بيانات المستخدم الحالي
-                const currentUserData = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
+                const currentUserData = await db.collection("users").doc(currentUser.uid).get();
                 const currentUserInfo = currentUserData.data();
                 
                 // إضافة طلب الصداقة إلى المستخدم الهدف
-                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", friendId), {
-                    friendRequests: window.firebaseArrayUnion({
+                await db.collection("users").doc(friendId).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion({
                         from: currentUser.uid,
                         fromName: currentUserInfo.displayName,
-                        timestamp: window.firebaseServerTimestamp()
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     })
                 });
                 
@@ -998,13 +1033,13 @@
         async function acceptFriendRequest(fromUserId) {
             try {
                 // إضافة كصديق للمستخدم الحالي
-                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
-                    friends: window.firebaseArrayUnion(fromUserId)
+                await db.collection("users").doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(fromUserId)
                 });
                 
                 // إضافة المستخدم الحالي كصديق للمرسل
-                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", fromUserId), {
-                    friends: window.firebaseArrayUnion(currentUser.uid)
+                await db.collection("users").doc(fromUserId).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
                 });
                 
                 // إزالة طلب الصداقة
@@ -1031,12 +1066,12 @@
         // إزالة طلب صداقة
         async function removeFriendRequest(fromUserId) {
             // الحصول على طلبات الصداقة الحالية
-            const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
+            const userDoc = await db.collection("users").doc(currentUser.uid).get();
             const userData = userDoc.data();
             const updatedRequests = userData.friendRequests.filter(req => req.from !== fromUserId);
             
             // تحديث قائمة طلبات الصداقة
-            await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
+            await db.collection("users").doc(currentUser.uid).update({
                 friendRequests: updatedRequests
             });
         }
@@ -1054,11 +1089,11 @@
             } else {
                 // إنشاء محادثة جديدة
                 try {
-                    const newChatRef = await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "chats"), {
+                    const newChatRef = await db.collection("chats").add({
                         participants: [currentUser.uid, friendId],
-                        createdAt: window.firebaseServerTimestamp(),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         lastMessage: "",
-                        lastMessageTime: window.firebaseServerTimestamp()
+                        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     const newChat = {
@@ -1097,7 +1132,10 @@
             
             // إضافة فئة نشطة للمحادثة المحددة
             document.querySelectorAll('.contact').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.contact[data-id="${chat.id}"]`).classList.add('active');
+            const selectedContact = document.querySelector(`.contact[data-id="${chat.id}"]`);
+            if (selectedContact) {
+                selectedContact.classList.add('active');
+            }
             
             // إخفاء شريط جهات الاتصال على الهواتف المحمولة
             if (window.innerWidth <= 768) {
@@ -1110,13 +1148,11 @@
             messagesContainer.innerHTML = '';
             
             try {
-                const messagesQuery = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "messages"),
-                    window.firebaseWhere("chatId", "==", chatId),
-                    window.firebaseOrderBy("timestamp", "asc")
-                );
+                const messagesQuery = db.collection("messages")
+                    .where("chatId", "==", chatId)
+                    .orderBy("timestamp", "asc");
                 
-                const messagesSnapshot = await window.firebaseGetDocs(messagesQuery);
+                const messagesSnapshot = await messagesQuery.get();
                 
                 if (messagesSnapshot.empty) {
                     messagesContainer.innerHTML = '<div class="message received"><p>ابدأ محادثة جديدة</p><div class="message-time">الآن</div></div>';
@@ -1132,7 +1168,7 @@
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
                 // الاستماع للرسائل الجديدة في الوقت الفعلي
-                const unsubscribe = window.firebaseOnSnapshot(messagesQuery, (snapshot) => {
+                const unsubscribe = messagesQuery.onSnapshot((snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
                             const message = change.doc.data();
@@ -1140,6 +1176,8 @@
                             messagesContainer.scrollTop = messagesContainer.scrollHeight;
                         }
                     });
+                }, (error) => {
+                    console.error("خطأ في الاستماع للرسائل:", error);
                 });
                 
                 // تخزين دالة إلغاء الاشتراك
@@ -1172,17 +1210,17 @@
             
             try {
                 // إضافة الرسالة إلى Firestore
-                await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "messages"), {
+                await db.collection("messages").add({
                     chatId: selectedChat.id,
                     senderId: currentUser.uid,
                     text: messageText,
-                    timestamp: window.firebaseServerTimestamp()
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // تحديث آخر رسالة في المحادثة
-                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "chats", selectedChat.id), {
+                await db.collection("chats").doc(selectedChat.id).update({
                     lastMessage: messageText,
-                    lastMessageTime: window.firebaseServerTimestamp()
+                    lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 messageInput.value = '';
@@ -1259,12 +1297,8 @@
             
             try {
                 // البحث عن المستخدم بالبريد الإلكتروني
-                const usersQuery = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "users"),
-                    window.firebaseWhere("email", "==", email)
-                );
-                
-                const usersSnapshot = await window.firebaseGetDocs(usersQuery);
+                const usersQuery = db.collection("users").where("email", "==", email);
+                const usersSnapshot = await usersQuery.get();
                 
                 if (usersSnapshot.empty) {
                     showNotification('لم يتم العثور على مستخدم بهذا البريد الإلكتروني', 'error');
@@ -1290,10 +1324,16 @@
 
         // إغلاق نافذة إضافة الأصدقاء عند النقر خارجها
         document.addEventListener('click', (e) => {
-            if (!addFriendModal.contains(e.target) && e.target !== addFriendBtn) {
+            if (!addFriendModal.contains(e.target) && e.target !== addFriendBtn && !addFriendBtn.contains(e.target)) {
                 addFriendModal.classList.add('hidden');
             }
         });
+
+        // اختبار اتصال Firebase عند التحميل
+        window.addEventListener('load', () => {
+            console.log("تطبيق الدردشة محمل بنجاح");
+            document.getElementById('firebaseStatus').textContent = "✅ تم تحميل التطبيق بنجاح";
+        });
     </script>
 </body>
-</html>
+    </html>

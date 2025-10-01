@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تواصل - موقع التواصل الاجتماعي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --primary-dark: #166fe5;
+            --secondary-color: #42b72a;
+            --secondary-dark: #36a420;
+            --bg-color: #f0f2f5;
+            --card-color: #ffffff;
+            --text-color: #1c1e21;
+            --text-secondary: #65676b;
+            --border-color: #dddfe2;
+            --shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* صفحة تسجيل الدخول */
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .auth-card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .auth-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 12px 20px rgba(0, 0, 0, .1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .logo p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .auth-form {
+            margin-top: 20px;
+        }
+
+        .auth-form h2 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #f5f6f7;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(24, 119, 242, 0.1);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .auth-switch a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* صفحة التطبيق الرئيسية */
+        .app-container {
+            display: none;
+        }
+
+        .header {
+            background-color: var(--card-color);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 8px 15px 8px 40px;
+            border-radius: 20px;
+            border: none;
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            transition: background-color 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            background-color: #e4e6e9;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f5;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        .nav-icon:hover {
+            background-color: #e4e6e9;
+        }
+
+        .nav-icon.active {
+            color: var(--primary-color);
+        }
+
+        .nav-icon i {
+            font-size: 20px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background-color: #fa383e;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info:hover {
+            background-color: #f0f2f5;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            flex: 0 0 280px;
+            position: sticky;
+            top: 70px;
+            height: calc(100vh - 90px);
+            overflow-y: auto;
+        }
+
+        .sidebar-card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-menu li:hover {
+            background-color: #f0f2f5;
+        }
+
+        .sidebar-menu li.active {
+            background-color: #e7f3ff;
+        }
+
+        .sidebar-menu a {
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .sidebar-menu i {
+            width: 24px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .feed {
+            flex: 1;
+            max-width: 680px;
+        }
+
+        .stories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .story {
+            min-width: 120px;
+            height: 200px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+            flex-shrink: 0;
+        }
+
+        .story-bg {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s;
+        }
+
+        .story:hover .story-bg {
+            transform: scale(1.05);
+        }
+
+        .story-user {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+            overflow: hidden;
+        }
+
+        .story-user img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .story-add {
+            position: absolute;
+            bottom: 10px;
+            right: 50%;
+            transform: translateX(50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 4px solid white;
+        }
+
+        .story-username {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            left: 10px;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .create-post {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .post-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .post-input .user-avatar {
+            width: 40px;
+            height: 40px;
+        }
+
+        .post-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 20px;
+            border: none;
+            background-color: #f0f2f5;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .post-input input:hover {
+            background-color: #e4e6e9;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .post-action:hover {
+            background-color: #f0f2f5;
+        }
+
+        .post {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .post-header .user-avatar {
+            width: 40px;
+            height: 40px;
+        }
+
+        .post-user-info h4 {
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+
+        .post-user-info span {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .post-options {
+            margin-right: auto;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .post-options:hover {
+            background-color: #f0f2f5;
+        }
+
+        .post-content {
+            margin: 15px 0;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .post-actions-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 5px 0;
+        }
+
+        .post-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+            flex: 1;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .post-action-btn:hover {
+            background-color: #f0f2f5;
+        }
+
+        .post-action-btn.active {
+            color: var(--primary-color);
+        }
+
+        .comments-section {
+            margin-top: 15px;
+        }
+
+        .comment {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .comment .user-avatar {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+            background-color: #f0f2f5;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .comment-header h5 {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .comment-header span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .comment-text {
+            font-size: 14px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .comment-action {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .comment-action:hover {
+            text-decoration: underline;
+        }
+
+        .comment-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-input .user-avatar {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .comment-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 18px;
+            border: none;
+            background-color: #f0f2f5;
+        }
+
+        .widgets {
+            flex: 0 0 300px;
+            position: sticky;
+            top: 70px;
+            height: calc(100vh - 90px);
+            overflow-y: auto;
+        }
+
+        .widget {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .widget h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 18px;
+        }
+
+        .friend-list {
+            list-style: none;
+        }
+
+        .friend-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .friend-list li:hover {
+            background-color: #f0f2f5;
+        }
+
+        .friend-list li:last-child {
+            border-bottom: none;
+        }
+
+        .friend-list .user-avatar {
+            width: 36px;
+            height: 36px;
+        }
+
+        .friend-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .friend-info span {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* نمط للرسائل */
+        .message {
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .message.error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .message.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        /* نمط الاستجابة للجوال */
+        @media (max-width: 1100px) {
+            .widgets {
+                display: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .stories {
+                padding: 10px 15px;
+            }
+            
+            .story {
+                min-width: 100px;
+                height: 180px;
+            }
+        }
+
+        /* تحسينات للرسوم المتحركة */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post, .widget, .create-post, .sidebar-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* تحسينات للتمرير */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <!-- صفحة المصادقة -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <h1>تواصل</h1>
+                <p>تواصل مع أصدقائك والعالم من حولك</p>
+            </div>
+
+            <!-- نموذج تسجيل الدخول -->
+            <div id="login-form" class="auth-form">
+                <h2>تسجيل الدخول</h2>
+                <div class="form-group">
+                    <label for="login-email">البريد الإلكتروني</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">كلمة المرور</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="أدخل كلمة المرور">
+                </div>
+                <button id="login-btn" class="btn btn-primary">تسجيل الدخول</button>
+                
+                <div class="divider"><span>أو</span></div>
+                
+                <button id="phone-login-btn" class="btn btn-outline">تسجيل الدخول برقم الهاتف</button>
+                
+                <div class="auth-switch">
+                    <p>ليس لديك حساب؟ <a href="#" id="switch-to-signup">إنشاء حساب جديد</a></p>
+                </div>
+            </div>
+
+            <!-- نموذج إنشاء حساب -->
+            <div id="signup-form" class="auth-form" style="display: none;">
+                <h2>إنشاء حساب جديد</h2>
+                <div class="form-group">
+                    <label for="signup-name">الاسم الكامل</label>
+                    <input type="text" id="signup-name" class="form-control" placeholder="أدخل اسمك الكامل">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">البريد الإلكتروني</label>
+                    <input type="email" id="signup-email" class="form-control" placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">كلمة المرور</label>
+                    <input type="password" id="signup-password" class="form-control" placeholder="أنشئ كلمة مرور قوية">
+                </div>
+                <button id="signup-btn" class="btn btn-primary">إنشاء حساب</button>
+                
+                <div class="divider"><span>أو</span></div>
+                
+                <button id="phone-signup-btn" class="btn btn-outline">إنشاء حساب برقم الهاتف</button>
+                
+                <div class="auth-switch">
+                    <p>لديك حساب بالفعل؟ <a href="#" id="switch-to-login">تسجيل الدخول</a></p>
+                </div>
+            </div>
+
+            <!-- نموذج تسجيل الدخول برقم الهاتف -->
+            <div id="phone-auth-form" class="auth-form" style="display: none;">
+                <h2 id="phone-form-title">تسجيل الدخول برقم الهاتف</h2>
+                <div class="form-group">
+                    <label for="phone-number">رقم الهاتف</label>
+                    <input type="tel" id="phone-number" class="form-control" placeholder="أدخل رقم هاتفك">
+                </div>
+                <div id="verification-code-group" class="form-group" style="display: none;">
+                    <label for="verification-code">رمز التحقق</label>
+                    <input type="text" id="verification-code" class="form-control" placeholder="أدخل رمز التحقق">
+                </div>
+                <button id="send-code-btn" class="btn btn-primary">إرسال رمز التحقق</button>
+                <button id="verify-code-btn" class="btn btn-success" style="display: none;">تحقق من الرمز</button>
+                
+                <div class="auth-switch">
+                    <p><a href="#" id="switch-to-email-auth">العودة إلى تسجيل الدخول بالبريد الإلكتروني</a></p>
+                </div>
+            </div>
+
+            <!-- منطقة الرسائل -->
+            <div id="auth-message"></div>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="app-container" class="app-container">
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <h1 style="color: var(--primary-color); font-size: 1.8rem;">تواصل</h1>
+                </div>
+                
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="بحث في تواصل">
+                </div>
+                
+                <div class="nav-icons">
+                    <div class="nav-icon active">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="nav-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="nav-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="nav-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="nav-icon">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-badge">3</div>
+                    </div>
+                </div>
+                
+                <div class="user-info" id="user-info">
+                    <div class="user-avatar" id="user-avatar">م</div>
+                    <span id="user-name">مستخدم</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="container main-content">
+            <aside class="sidebar">
+                <div class="sidebar-card">
+                    <ul class="sidebar-menu">
+                        <li class="active">
+                            <a href="#">
+                                <i class="fas fa-user"></i>
+                                <span id="sidebar-user-name">مستخدم</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-user-friends"></i>
+                                <span>الأصدقاء</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-users"></i>
+                                <span>المجموعات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-store"></i>
+                                <span>Marketplace</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-video"></i>
+                                <span>Watch</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-history"></i>
+                                <span>الذكريات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-bookmark"></i>
+                                <span>المحفوظات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-cog"></i>
+                                <span>الإعدادات</span>
+                            </a>
+                        </li>
+                        <li id="logout-li">
+                            <a href="#" id="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>تسجيل الخروج</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-card">
+                    <h3>جهات الاتصال</h3>
+                    <ul class="friend-list">
+                        <li>
+                            <div class="user-avatar">أ</div>
+                            <div class="friend-info">
+                                <h4>أحمد محمد</h4>
+                                <span>متصل الآن</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">س</div>
+                            <div class="friend-info">
+                                <h4>سارة خالد</h4>
+                                <span>متصل منذ 5 دقائق</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ي</div>
+                            <div class="friend-info">
+                                <h4>يوسف عبدالله</h4>
+                                <span>غير متصل</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ن</div>
+                            <div class="friend-info">
+                                <h4>نورة سعيد</h4>
+                                <span>متصل الآن</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ع</div>
+                            <div class="friend-info">
+                                <h4>علي حسن</h4>
+                                <span>غير متصل</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+            
+            <main class="feed">
+                <div class="stories">
+                    <div class="story">
+                        <div class="story-bg" style="background-image: url('https://images.unsplash.com/photo-1579546929662-711aa81148cf?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="story-user">
+                            <div class="user-avatar" id="story-user-avatar">م</div>
+                        </div>
+                        <div class="story-add">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="story-username">إنشاء قصة</div>
+                    </div>
+                    
+                    <div class="story">
+                        <div class="story-bg" style="background-image: url('https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="story-user">
+                            <div class="user-avatar">أ</div>
+                        </div>
+                        <div class="story-username">أحمد محمد</div>
+                    </div>
+                    
+                    <div class="story">
+                        <div class="story-bg" style="background-image: url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="story-user">
+                            <div class="user-avatar">س</div>
+                        </div>
+                        <div class="story-username">سارة خالد</div>
+                    </div>
+                    
+                    <div class="story">
+                        <div class="story-bg" style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="story-user">
+                            <div class="user-avatar">ي</div>
+                        </div>
+                        <div class="story-username">يوسف عبدالله</div>
+                    </div>
+                </div>
+                
+                <div class="create-post">
+                    <div class="post-input">
+                        <div class="user-avatar" id="post-user-avatar">م</div>
+                        <input type="text" placeholder="ما الذي يدور في ذهنك، [اسم المستخدم]؟" id="post-input-text">
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action">
+                            <i class="fas fa-video" style="color: #F02849;"></i>
+                            <span>فيديو مباشر</span>
+                        </div>
+                        <div class="post-action">
+                            <i class="fas fa-images" style="color: #45BD62;"></i>
+                            <span>صورة</span>
+                        </div>
+                        <div class="post-action">
+                            <i class="fas fa-smile" style="color: #F7B928;"></i>
+                            <span>شعور/نشاط</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="post">
+                    <div class="post-header">
+                        <div class="user-avatar">أ</div>
+                        <div class="post-user-info">
+                            <h4>أحمد محمد</h4>
+                            <span>منذ ساعة واحدة • <i class="fas fa-globe-asia"></i></span>
+                        </div>
+                        <div class="post-options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p>صباح الخير للجميع! أتمنى أن يكون يومكم مليئًا بالطاقة الإيجابية والإنجازات.</p>
+                    </div>
+                    <div class="post-stats">
+                        <div class="post-likes">
+                            <i class="fas fa-thumbs-up" style="color: #1877f2;"></i>
+                            <span>120</span>
+                        </div>
+                        <div class="post-comments">
+                            <span>24 تعليق • 5 مشاركات</span>
+                        </div>
+                    </div>
+                    <div class="post-actions-bar">
+                        <div class="post-action-btn">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>إعجاب</span>
+                        </div>
+                        <div class="post-action-btn">
+                            <i class="far fa-comment"></i>
+                            <span>تعليق</span>
+                        </div>
+                        <div class="post-action-btn">
+                            <i class="far fa-share-square"></i>
+                            <span>مشاركة</span>
+                        </div>
+                    </div>
+                    <div class="comments-section">
+                        <div class="comment">
+                            <div class="user-avatar">س</div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h5>سارة خالد</h5>
+                                    <span>منذ 45 دقيقة</span>
+                                </div>
+                                <div class="comment-text">
+                                    صباح الخير! أتمنى لك يومًا رائعًا أيضًا.
+                                </div>
+                                <div class="comment-actions">
+                                    <span class="comment-action">إعجاب</span>
+                                    <span class="comment-action">رد</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="comment-input">
+                            <div class="user-avatar" id="comment-user-avatar">م</div>
+                            <input type="text" placeholder="اكتب تعليقًا...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="post">
+                    <div class="post-header">
+                        <div class="user-avatar">ف</div>
+                        <div class="post-user-info">
+                            <h4>فاطمة علي</h4>
+                            <span>منذ 3 ساعات • <i class="fas fa-globe-asia"></i></span>
+                        </div>
+                        <div class="post-options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p>شاركت في مؤتمر التكنولوجيا اليوم وكانت تجربة رائعة! تعلمت الكثير عن أحدث التطورات في مجال الذكاء الاصطناعي.</p>
+                        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="مؤتمر التكنولوجيا" class="post-image">
+                    </div>
+                    <div class="post-stats">
+                        <div class="post-likes">
+                            <i class="fas fa-thumbs-up" style="color: #1877f2;"></i>
+                            <span>85</span>
+                        </div>
+                        <div class="post-comments">
+                            <span>12 تعليق • 3 مشاركات</span>
+                        </div>
+                    </div>
+                    <div class="post-actions-bar">
+                        <div class="post-action-btn active">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span>معجب</span>
+                        </div>
+                        <div class="post-action-btn">
+                            <i class="far fa-comment"></i>
+                            <span>تعليق</span>
+                        </div>
+                        <div class="post-action-btn">
+                            <i class="far fa-share-square"></i>
+                            <span>مشاركة</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            
+            <aside class="widgets">
+                <div class="widget">
+                    <h3>عيد ميلاد</h3>
+                    <div class="birthday-info">
+                        <i class="fas fa-birthday-cake" style="color: #F02849; margin-left: 10px;"></i>
+                        <span>لدى <strong>أحمد محمد</strong> عيد ميلاد اليوم</span>
+                    </div>
+                </div>
+                
+                <div class="widget">
+                    <h3>جهات الاتصال</h3>
+                    <ul class="friend-list">
+                        <li>
+                            <div class="user-avatar">م</div>
+                            <div class="friend-info">
+                                <h4>محمد أحمد</h4>
+                                <span>متصل الآن</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">س</div>
+                            <div class="friend-info">
+                                <h4>سارة خالد</h4>
+                                <span>متصل منذ 5 دقائق</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ي</div>
+                            <div class="friend-info">
+                                <h4>يوسف عبدالله</h4>
+                                <span>غير متصل</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ن</div>
+                            <div class="friend-info">
+                                <h4>نورة سعيد</h4>
+                                <span>متصل الآن</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar">ع</div>
+                            <div class="friend-info">
+                                <h4>علي حسن</h4>
+                                <span>غير متصل</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="widget">
+                    <h3>المجموعات</h3>
+                    <ul class="friend-list">
+                        <li>
+                            <div class="user-avatar" style="background-color: #4267B2;"><i class="fas fa-users"></i></div>
+                            <div class="friend-info">
+                                <h4>مطورو الويب</h4>
+                                <span>4 منشورات جديدة</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar" style="background-color: #00A400;"><i class="fas fa-users"></i></div>
+                            <div class="friend-info">
+                                <h4>مجتمع المصممين</h4>
+                                <span>حدث: غدًا الساعة 5</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar" style="background-color: #F7B928;"><i class="fas fa-users"></i></div>
+                            <div class="friend-info">
+                                <h4>محبي السفر</h4>
+                                <span>عضو جديد</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            orderBy, 
+            onSnapshot,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD682-wDJBdjyqIxpJ6UVf8wWNBubsz1_E",
+            authDomain: "social-media-441.firebaseapp.com",
+            projectId: "social-media-441",
+            storageBucket: "social-media-441.firebasestorage.app",
+            messagingSenderId: "963490662929",
+            appId: "1:963490662929:web:f4cc0b0a677e960111bfb0",
+            measurementId: "G-16K5ZJSJLN"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // عناصر DOM
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const phoneAuthForm = document.getElementById('phone-auth-form');
+        const authMessage = document.getElementById('auth-message');
+        
+        // أزرار التحويل بين النماذج
+        document.getElementById('switch-to-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            phoneAuthForm.style.display = 'none';
+            clearMessage();
+        });
+        
+        document.getElementById('switch-to-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            phoneAuthForm.style.display = 'none';
+            clearMessage();
+        });
+        
+        document.getElementById('phone-login-btn').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'none';
+            phoneAuthForm.style.display = 'block';
+            document.getElementById('phone-form-title').textContent = 'تسجيل الدخول برقم الهاتف';
+            clearMessage();
+        });
+        
+        document.getElementById('phone-signup-btn').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'none';
+            phoneAuthForm.style.display = 'block';
+            document.getElementById('phone-form-title').textContent = 'إنشاء حساب برقم الهاتف';
+            clearMessage();
+        });
+        
+        document.getElementById('switch-to-email-auth').addEventListener('click', (e) => {
+            e.preventDefault();
+            phoneAuthForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            clearMessage();
+        });
+        
+        // تسجيل الدخول بالبريد الإلكتروني
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showMessage('يرجى ملء جميع الحقول', 'error');
+                return;
+            }
+            
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    showMessage('تم تسجيل الدخول بنجاح!', 'success');
+                    setTimeout(() => {
+                        showApp(userCredential.user);
+                    }, 1000);
+                })
+                .catch((error) => {
+                    showMessage(getAuthErrorMessage(error.code), 'error');
+                });
+        });
+        
+        // إنشاء حساب بالبريد الإلكتروني
+        document.getElementById('signup-btn').addEventListener('click', () => {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            if (!name || !email || !password) {
+                showMessage('يرجى ملء جميع الحقول', 'error');
+                return;
+            }
+            
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // تحديث ملف المستخدم
+                    return updateProfile(userCredential.user, {
+                        displayName: name
+                    });
+                })
+                .then(() => {
+                    // حفظ بيانات المستخدم في Firestore
+                    return addDoc(collection(db, 'users'), {
+                        uid: auth.currentUser.uid,
+                        name: name,
+                        email: email,
+                        createdAt: serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    showMessage('تم إنشاء الحساب بنجاح!', 'success');
+                    setTimeout(() => {
+                        showApp(auth.currentUser);
+                    }, 1000);
+                })
+                .catch((error) => {
+                    showMessage(getAuthErrorMessage(error.code), 'error');
+                });
+        });
+        
+        // تسجيل الدخول برقم الهاتف (واجهة فقط - يحتاج إلى RecaptchaVerifier)
+        document.getElementById('send-code-btn').addEventListener('click', () => {
+            const phoneNumber = document.getElementById('phone-number').value;
+            
+            if (!phoneNumber) {
+                showMessage('يرجى إدخال رقم الهاتف', 'error');
+                return;
+            }
+            
+            showMessage('هذه الميزة تحتاج إلى إعداد Recaptcha في Firebase Console', 'error');
+            
+            // في التطبيق الحقيقي، سيتم تنفيذ:
+            // const appVerifier = new RecaptchaVerifier(auth, 'send-code-btn', {...});
+            // signInWithPhoneNumber(auth, phoneNumber, appVerifier)...
+        });
+        
+        document.getElementById('verify-code-btn').addEventListener('click', () => {
+            showMessage('هذه الميزة تحتاج إلى إعداد Recaptcha في Firebase Console', 'error');
+        });
+        
+        // تسجيل الخروج
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => {
+                appContainer.style.display = 'none';
+                authContainer.style.display = 'flex';
+                clearMessage();
+            });
+        });
+        
+        // عرض التطبيق الرئيسي
+        function showApp(user) {
+            authContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // تحديث معلومات المستخدم في الواجهة
+            const userName = user.displayName || user.email || 'مستخدم';
+            const userInitial = userName.charAt(0);
+            
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = userInitial;
+            document.getElementById('post-user-avatar').textContent = userInitial;
+            document.getElementById('comment-user-avatar').textContent = userInitial;
+            document.getElementById('story-user-avatar').textContent = userInitial;
+            document.getElementById('sidebar-user-name').textContent = userName;
+            
+            // تحديث النص في حقل إنشاء المنشور
+            const postInput = document.getElementById('post-input-text');
+            postInput.placeholder = `ما الذي يدور في ذهنك، ${userName}؟`;
+            
+            // تحميل المنشورات
+            loadPosts();
+        }
+        
+        // تحميل المنشورات من Firestore
+        function loadPosts() {
+            const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+            
+            onSnapshot(postsQuery, (querySnapshot) => {
+                // في التطبيق الحقيقي، سنقوم بتحديث المنشورات هنا
+                console.log('Posts loaded:', querySnapshot.docs.length);
+            });
+        }
+        
+        // عرض الرسائل
+        function showMessage(message, type) {
+            authMessage.innerHTML = `<div class="message ${type}">${message}</div>`;
+        }
+        
+        function clearMessage() {
+            authMessage.innerHTML = '';
+        }
+        
+        // تحويل رسائل الخطأ
+        function getAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'البريد الإلكتروني غير صحيح';
+                case 'auth/user-disabled':
+                    return 'هذا المستخدم معطل';
+                case 'auth/user-not-found':
+                    return 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني';
+                case 'auth/wrong-password':
+                    return 'كلمة المرور غير صحيحة';
+                case 'auth/email-already-in-use':
+                    return 'هذا البريد الإلكتروني مستخدم بالفعل';
+                case 'auth/weak-password':
+                    return 'كلمة المرور ضعيفة، يرجى استخدام كلمة مرور أقوى';
+                case 'auth/operation-not-allowed':
+                    return 'عملية التسجيل غير مسموحة';
+                default:
+                    return 'حدث خطأ، يرجى المحاولة مرة أخرى';
+            }
+        }
+        
+        // التحقق من حالة تسجيل الدخول
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                showApp(user);
+            }
+        });
+
+        // إضافة تفاعل للأزرار في التطبيق
+        document.querySelectorAll('.post-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.querySelector('.fa-thumbs-up')) {
+                    const icon = this.querySelector('i');
+                    const text = this.querySelector('span');
+                    
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.classList.add('active');
+                        text.textContent = 'معجب';
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.classList.remove('active');
+                        text.textContent = 'إعجاب';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الدردشة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+        import { 
+            getAuth, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        import { 
+            getFirestore,
+            collection,
+            addDoc,
+            query,
+            where,
+            getDocs,
+            onSnapshot,
+            orderBy,
+            serverTimestamp,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc,
+            arrayUnion,
+            arrayRemove
+        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxa_EPngafJxa_sm7dYkFLZqaNKwGeXs8",
+            authDomain: "chat-744.firebaseapp.com",
+            projectId: "chat-744",
+            storageBucket: "chat-744.firebasestorage.app",
+            messagingSenderId: "549484345223",
+            appId: "1:549484345223:web:cc8a7732679607847ec522",
+            measurementId: "G-T97D8WXQ8V"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // جعل المتغيرات متاحة بشكل عام
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseGoogleAuthProvider = GoogleAuthProvider;
+        window.firebaseSignInWithPopup = signInWithPopup;
+        window.firebaseSignOut = signOut;
+        window.firebaseOnAuthStateChanged = onAuthStateChanged;
+        window.firebaseCollection = collection;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseQuery = query;
+        window.firebaseWhere = where;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseServerTimestamp = serverTimestamp;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseArrayUnion = arrayUnion;
+        window.firebaseArrayRemove = arrayRemove;
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #128C7E;
+            --secondary-color: #25D366;
+            --light-color: #DCF8C6;
+            --dark-color: #075E54;
+            --gray-color: #ECE5DD;
+            --text-color: #4A4A4A;
+            --error-color: #ff4d4d;
+            --success-color: #4CAF50;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* شريط جهات الاتصال */
+        .contacts-sidebar {
+            width: 30%;
+            background-color: white;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 15px;
+        }
+
+        .user-profile .user-info {
+            flex-grow: 1;
+        }
+
+        .user-profile .icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .user-profile .icons i {
+            cursor: pointer;
+        }
+
+        .search-bar {
+            padding: 10px 15px;
+            background-color: white;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background-color: #f5f5f5;
+            outline: none;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab:hover {
+            background-color: #f5f5f5;
+        }
+
+        .contacts-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .contact {
+            display: flex;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .contact:hover {
+            background-color: #f5f5f5;
+        }
+
+        .contact.active {
+            background-color: #e9e9e9;
+        }
+
+        .contact img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 15px;
+        }
+
+        .contact-info {
+            flex-grow: 1;
+        }
+
+        .contact-info h3 {
+            margin-bottom: 5px;
+        }
+
+        .contact-info p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .contact-time {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .friend-actions i {
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        /* منطقة الدردشة */
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--gray-color);
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--gray-color);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-left: 15px;
+        }
+
+        .chat-header-info {
+            flex-grow: 1;
+        }
+
+        .chat-header-info h3 {
+            margin-bottom: 5px;
+        }
+
+        .chat-header-info p {
+            font-size: 13px;
+            color: #777;
+        }
+
+        .chat-header-icons {
+            display: flex;
+            gap: 20px;
+            color: #555;
+        }
+
+        .chat-header-icons i {
+            cursor: pointer;
+        }
+
+        .messages-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 65%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 7px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .received {
+            align-self: flex-start;
+            background-color: white;
+            border-top-right-radius: 0;
+        }
+
+        .sent {
+            align-self: flex-end;
+            background-color: var(--light-color);
+            border-top-left-radius: 0;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            text-align: left;
+            margin-top: 5px;
+        }
+
+        .message-input {
+            display: flex;
+            padding: 15px;
+            background-color: var(--gray-color);
+            align-items: center;
+        }
+
+        .message-input input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            margin: 0 10px;
+        }
+
+        .message-input i {
+            font-size: 24px;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        /* شاشة تسجيل الدخول */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h1 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .login-box p {
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .google-login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .google-login-btn:hover {
+            background-color: #357ae8;
+        }
+
+        .google-login-btn i {
+            margin-left: 10px;
+            font-size: 20px;
+        }
+
+        /* شاشة إضافة أصدقاء */
+        .add-friend-container {
+            padding: 15px;
+            background-color: white;
+        }
+
+        .add-friend-input {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .add-friend-input input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px 0 0 5px;
+            outline: none;
+        }
+
+        .add-friend-input button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+
+        .users-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .user-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .user-item-info {
+            flex-grow: 1;
+        }
+
+        .user-item-actions button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .user-item-actions button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--error-color);
+        }
+
+        /* التكيف مع الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .contacts-sidebar {
+                width: 100%;
+                position: absolute;
+                height: 100%;
+                z-index: 10;
+                transition: transform 0.3s;
+            }
+
+            .contacts-sidebar.hidden {
+                transform: translateX(-100%);
+            }
+
+            .chat-area {
+                width: 100%;
+            }
+
+            .menu-icon {
+                display: block;
+            }
+        }
+
+        .menu-icon {
+            display: none;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>تطبيق الدردشة</h1>
+            <p>تطبيق دردشة آمن وسريع يمكنك من التواصل مع أصدقائك في أي وقت</p>
+            <button id="googleLogin" class="google-login-btn">
+                <i class="fab fa-google"></i>
+                تسجيل الدخول باستخدام جيميل
+            </button>
+        </div>
+    </div>
+
+    <!-- تطبيق الدردشة الرئيسي -->
+    <div id="chatApp" class="container hidden">
+        <!-- شريط جهات الاتصال -->
+        <div class="contacts-sidebar">
+            <div class="user-profile">
+                <i class="fas fa-bars menu-icon" id="menuToggle"></i>
+                <img id="userAvatar" src="" alt="صورة المستخدم">
+                <div class="user-info">
+                    <h3 id="userName">المستخدم</h3>
+                    <p>متصل الآن</p>
+                </div>
+                <div class="icons">
+                    <i class="fas fa-circle-notch" id="statusIndicator"></i>
+                    <i class="fas fa-user-plus" id="addFriendBtn"></i>
+                    <i class="fas fa-sign-out-alt" id="logoutBtn"></i>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="بحث أو بدء محادثة جديدة">
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="chats">المحادثات</div>
+                <div class="tab" data-tab="friends">الأصدقاء</div>
+                <div class="tab" data-tab="requests">طلبات الصداقة</div>
+            </div>
+
+            <div class="contacts-list" id="contactsList">
+                <!-- سيتم ملء جهات الاتصال ديناميكيًا -->
+            </div>
+        </div>
+
+        <!-- منطقة الدردشة -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <img id="currentContactAvatar" src="https://via.placeholder.com/45" alt="صورة جهة الاتصال">
+                <div class="chat-header-info">
+                    <h3 id="currentContactName">اختر محادثة</h3>
+                    <p id="currentContactStatus">...</p>
+                </div>
+                <div class="chat-header-icons">
+                    <i class="fas fa-search"></i>
+                    <i class="fas fa-paperclip"></i>
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <!-- سيتم ملء الرسائل ديناميكيًا -->
+                <div class="message received">
+                    <p>مرحباً! اختر محادثة لبدء الدردشة.</p>
+                    <div class="message-time">الآن</div>
+                </div>
+            </div>
+
+            <div class="message-input">
+                <i class="far fa-smile"></i>
+                <i class="fas fa-paperclip"></i>
+                <input type="text" id="messageInput" placeholder="اكتب رسالة..." disabled>
+                <i class="fas fa-microphone"></i>
+                <i class="fas fa-paper-plane" id="sendButton"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة أصدقاء -->
+    <div id="addFriendModal" class="hidden">
+        <div class="add-friend-container">
+            <h3>إضافة صديق</h3>
+            <div class="add-friend-input">
+                <input type="email" id="friendEmail" placeholder="البريد الإلكتروني للصديق">
+                <button id="sendFriendRequest">إرسال طلب</button>
+            </div>
+            <div class="users-list" id="usersList">
+                <!-- سيتم ملء قائمة المستخدمين ديناميكيًا -->
+            </div>
+        </div>
+    </div>
+
+    <!-- إشعارات -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // عناصر DOM
+        const loginScreen = document.getElementById('loginScreen');
+        const chatApp = document.getElementById('chatApp');
+        const googleLoginBtn = document.getElementById('googleLogin');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const contactsList = document.getElementById('contactsList');
+        const currentContactName = document.getElementById('currentContactName');
+        const currentContactAvatar = document.getElementById('currentContactAvatar');
+        const currentContactStatus = document.getElementById('currentContactStatus');
+        const menuToggle = document.getElementById('menuToggle');
+        const tabs = document.querySelectorAll('.tab');
+        const searchInput = document.getElementById('searchInput');
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const addFriendModal = document.getElementById('addFriendModal');
+        const friendEmail = document.getElementById('friendEmail');
+        const sendFriendRequestBtn = document.getElementById('sendFriendRequest');
+        const usersList = document.getElementById('usersList');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const notification = document.getElementById('notification');
+
+        // متغيرات التطبيق
+        let currentUser = null;
+        let selectedChat = null;
+        let currentTab = 'chats';
+        let friends = [];
+        let friendRequests = [];
+        let chats = [];
+        let users = [];
+        let unsubscribeFunctions = [];
+
+        // تسجيل الدخول باستخدام جيميل
+        googleLoginBtn.addEventListener('click', async () => {
+            try {
+                const provider = new window.firebaseGoogleAuthProvider();
+                const result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+                currentUser = result.user;
+                
+                // حفظ معلومات المستخدم في Firestore
+                await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email,
+                    photoURL: currentUser.photoURL,
+                    friends: [],
+                    friendRequests: [],
+                    createdAt: window.firebaseServerTimestamp()
+                }, { merge: true });
+                
+                showChatApp();
+                loadUserData();
+                showNotification('تم تسجيل الدخول بنجاح!', 'success');
+            } catch (error) {
+                console.error("خطأ في تسجيل الدخول:", error);
+                showNotification('حدث خطأ أثناء تسجيل الدخول', 'error');
+            }
+        });
+
+        // تسجيل الخروج
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await window.firebaseSignOut(window.firebaseAuth);
+                showNotification('تم تسجيل الخروج بنجاح', 'success');
+            } catch (error) {
+                console.error("خطأ في تسجيل الخروج:", error);
+                showNotification('حدث خطأ أثناء تسجيل الخروج', 'error');
+            }
+        });
+
+        // التحقق من حالة المصادقة
+        window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+            if (user) {
+                currentUser = user;
+                showChatApp();
+                loadUserData();
+            } else {
+                currentUser = null;
+                showLoginScreen();
+                // إلغاء الاشتراك في جميع المستمعين
+                unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                unsubscribeFunctions = [];
+            }
+        });
+
+        // تحميل بيانات المستخدم
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            // تحميل بيانات المستخدم من Firestore
+            const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                friends = userData.friends || [];
+                friendRequests = userData.friendRequests || [];
+                
+                // تحديث واجهة المستخدم
+                loadFriends();
+                loadFriendRequests();
+                loadChats();
+                loadUsers();
+            }
+            
+            // الاستماع للتحديثات في الوقت الفعلي
+            setupRealtimeListeners();
+        }
+
+        // إعداد المستمعين في الوقت الفعلي
+        function setupRealtimeListeners() {
+            // الاستماع لتحديثات المستخدم
+            const userUnsubscribe = window.firebaseOnSnapshot(
+                window.firebaseDoc(window.firebaseDb, "users", currentUser.uid),
+                (doc) => {
+                    if (doc.exists()) {
+                        const userData = doc.data();
+                        friends = userData.friends || [];
+                        friendRequests = userData.friendRequests || [];
+                        
+                        // تحديث الواجهة بناءً على التبويب النشط
+                        if (currentTab === 'friends') {
+                            loadFriends();
+                        } else if (currentTab === 'requests') {
+                            loadFriendRequests();
+                        } else if (currentTab === 'chats') {
+                            loadChats();
+                        }
+                    }
+                }
+            );
+            unsubscribeFunctions.push(userUnsubscribe);
+            
+            // الاستماع لتحديثات المحادثات
+            const chatsQuery = window.firebaseQuery(
+                window.firebaseCollection(window.firebaseDb, "chats"),
+                window.firebaseWhere("participants", "array-contains", currentUser.uid)
+            );
+            
+            const chatsUnsubscribe = window.firebaseOnSnapshot(chatsQuery, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added" || change.type === "modified") {
+                        const chat = { id: change.doc.id, ...change.doc.data() };
+                        const existingIndex = chats.findIndex(c => c.id === chat.id);
+                        
+                        if (existingIndex >= 0) {
+                            chats[existingIndex] = chat;
+                        } else {
+                            chats.push(chat);
+                        }
+                        
+                        if (currentTab === 'chats') {
+                            loadChats();
+                        }
+                        
+                        // إذا كانت هذه المحادثة المحددة، قم بتحميل الرسائل
+                        if (selectedChat && selectedChat.id === chat.id) {
+                            loadMessages(chat.id);
+                        }
+                    }
+                });
+            });
+            unsubscribeFunctions.push(chatsUnsubscribe);
+        }
+
+        // تحميل الأصدقاء
+        function loadFriends() {
+            if (currentTab !== 'friends') return;
+            
+            contactsList.innerHTML = '';
+            
+            if (friends.length === 0) {
+                contactsList.innerHTML = '<div class="contact"><div class="contact-info"><p>لا يوجد أصدقاء حتى الآن</p></div></div>';
+                return;
+            }
+            
+            friends.forEach(friendId => {
+                // في تطبيق حقيقي، سنقوم بجلب بيانات الصديق من Firestore
+                // هنا سنقوم بمحاكاة البيانات
+                const friend = {
+                    id: friendId,
+                    name: `صديق ${friendId.substring(0, 5)}`,
+                    avatar: "https://via.placeholder.com/50",
+                    status: "متصل الآن"
+                };
+                
+                const contactElement = createContactElement(friend, 'friend');
+                contactsList.appendChild(contactElement);
+            });
+        }
+
+        // تحميل طلبات الصداقة
+        function loadFriendRequests() {
+            if (currentTab !== 'requests') return;
+            
+            contactsList.innerHTML = '';
+            
+            if (friendRequests.length === 0) {
+                contactsList.innerHTML = '<div class="contact"><div class="contact-info"><p>لا توجد طلبات صداقة</p></div></div>';
+                return;
+            }
+            
+            friendRequests.forEach(request => {
+                const requestElement = document.createElement('div');
+                requestElement.className = 'contact';
+                requestElement.innerHTML = `
+                    <img src="https://via.placeholder.com/50" alt="صورة المستخدم">
+                    <div class="contact-info">
+                        <h3>${request.fromName || `مستخدم ${request.from.substring(0, 5)}`}</h3>
+                        <p>يريد إضافتك كصديق</p>
+                    </div>
+                    <div class="friend-actions">
+                        <i class="fas fa-check accept-request" data-from="${request.from}"></i>
+                        <i class="fas fa-times reject-request" data-from="${request.from}"></i>
+                    </div>
+                `;
+                
+                contactsList.appendChild(requestElement);
+            });
+            
+            // إضافة مستمعي الأحداث لأزرار القبول والرفض
+            document.querySelectorAll('.accept-request').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const fromUserId = e.target.getAttribute('data-from');
+                    acceptFriendRequest(fromUserId);
+                });
+            });
+            
+            document.querySelectorAll('.reject-request').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const fromUserId = e.target.getAttribute('data-from');
+                    rejectFriendRequest(fromUserId);
+                });
+            });
+        }
+
+        // تحميل المحادثات
+        function loadChats() {
+            if (currentTab !== 'chats') return;
+            
+            contactsList.innerHTML = '';
+            
+            if (chats.length === 0) {
+                contactsList.innerHTML = '<div class="contact"><div class="contact-info"><p>لا توجد محادثات حتى الآن</p></div></div>';
+                return;
+            }
+            
+            chats.forEach(chat => {
+                // الحصول على بيانات المشارك الآخر
+                const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
+                const contact = {
+                    id: chat.id,
+                    name: `محادثة مع ${otherParticipantId.substring(0, 5)}`,
+                    avatar: "https://via.placeholder.com/50",
+                    status: "آخر نشاط: الآن",
+                    lastMessage: chat.lastMessage || "لا توجد رسائل بعد"
+                };
+                
+                const contactElement = createContactElement(contact, 'chat');
+                contactsList.appendChild(contactElement);
+            });
+        }
+
+        // تحميل المستخدمين (لإضافة أصدقاء)
+        async function loadUsers() {
+            const usersSnapshot = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, "users"));
+            users = [];
+            usersSnapshot.forEach(doc => {
+                if (doc.id !== currentUser.uid) {
+                    users.push({ id: doc.id, ...doc.data() });
+                }
+            });
+            
+            // تحديث واجهة المستخدم إذا كانت نافذة إضافة الأصدقاء مفتوحة
+            if (!addFriendModal.classList.contains('hidden')) {
+                renderUsersList();
+            }
+        }
+
+        // عرض قائمة المستخدمين
+        function renderUsersList() {
+            usersList.innerHTML = '';
+            
+            if (users.length === 0) {
+                usersList.innerHTML = '<div class="user-item"><div class="user-item-info"><p>لا يوجد مستخدمين آخرين</p></div></div>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const isFriend = friends.includes(user.id);
+                const hasPendingRequest = friendRequests.some(req => req.from === user.id);
+                
+                const userElement = document.createElement('div');
+                userElement.className = 'user-item';
+                userElement.innerHTML = `
+                    <img src="${user.photoURL || 'https://via.placeholder.com/40'}" alt="${user.displayName}">
+                    <div class="user-item-info">
+                        <h4>${user.displayName}</h4>
+                        <p>${user.email}</p>
+                    </div>
+                    <div class="user-item-actions">
+                        <button class="add-friend" data-userid="${user.id}" 
+                            ${isFriend || hasPendingRequest ? 'disabled' : ''}>
+                            ${isFriend ? 'صديق' : hasPendingRequest ? 'طلب مرسل' : 'إضافة صديق'}
+                        </button>
+                    </div>
+                `;
+                
+                usersList.appendChild(userElement);
+            });
+            
+            // إضافة مستمعي الأحداث لأزرار إضافة الأصدقاء
+            document.querySelectorAll('.add-friend:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.getAttribute('data-userid');
+                    sendFriendRequest(userId);
+                });
+            });
+        }
+
+        // إنشاء عنصر اتصال
+        function createContactElement(contact, type) {
+            const contactElement = document.createElement('div');
+            contactElement.className = 'contact';
+            contactElement.setAttribute('data-id', contact.id);
+            contactElement.setAttribute('data-type', type);
+            
+            contactElement.innerHTML = `
+                <img src="${contact.avatar}" alt="${contact.name}">
+                <div class="contact-info">
+                    <h3>${contact.name}</h3>
+                    <p>${type === 'chat' ? contact.lastMessage : contact.status}</p>
+                </div>
+                <div class="contact-time">${contact.lastSeen || ''}</div>
+            `;
+            
+            contactElement.addEventListener('click', () => {
+                if (type === 'chat') {
+                    selectChat(contact);
+                } else if (type === 'friend') {
+                    // إنشاء محادثة جديدة مع الصديق
+                    createOrSelectChat(contact.id);
+                }
+            });
+            
+            return contactElement;
+        }
+
+        // إرسال طلب صداقة
+        async function sendFriendRequest(friendId) {
+            try {
+                // الحصول على بيانات المستخدم الحالي
+                const currentUserData = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
+                const currentUserInfo = currentUserData.data();
+                
+                // إضافة طلب الصداقة إلى المستخدم الهدف
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", friendId), {
+                    friendRequests: window.firebaseArrayUnion({
+                        from: currentUser.uid,
+                        fromName: currentUserInfo.displayName,
+                        timestamp: window.firebaseServerTimestamp()
+                    })
+                });
+                
+                showNotification('تم إرسال طلب الصداقة بنجاح', 'success');
+                loadUsers(); // تحديث قائمة المستخدمين
+            } catch (error) {
+                console.error("خطأ في إرسال طلب الصداقة:", error);
+                showNotification('حدث خطأ أثناء إرسال طلب الصداقة', 'error');
+            }
+        }
+
+        // قبول طلب صداقة
+        async function acceptFriendRequest(fromUserId) {
+            try {
+                // إضافة كصديق للمستخدم الحالي
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
+                    friends: window.firebaseArrayUnion(fromUserId)
+                });
+                
+                // إضافة المستخدم الحالي كصديق للمرسل
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", fromUserId), {
+                    friends: window.firebaseArrayUnion(currentUser.uid)
+                });
+                
+                // إزالة طلب الصداقة
+                await removeFriendRequest(fromUserId);
+                
+                showNotification('تمت إضافة الصديق بنجاح', 'success');
+            } catch (error) {
+                console.error("خطأ في قبول طلب الصداقة:", error);
+                showNotification('حدث خطأ أثناء قبول طلب الصداقة', 'error');
+            }
+        }
+
+        // رفض طلب صداقة
+        async function rejectFriendRequest(fromUserId) {
+            try {
+                await removeFriendRequest(fromUserId);
+                showNotification('تم رفض طلب الصداقة', 'success');
+            } catch (error) {
+                console.error("خطأ في رفض طلب الصداقة:", error);
+                showNotification('حدث خطأ أثناء رفض طلب الصداقة', 'error');
+            }
+        }
+
+        // إزالة طلب صداقة
+        async function removeFriendRequest(fromUserId) {
+            // الحصول على طلبات الصداقة الحالية
+            const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid));
+            const userData = userDoc.data();
+            const updatedRequests = userData.friendRequests.filter(req => req.from !== fromUserId);
+            
+            // تحديث قائمة طلبات الصداقة
+            await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "users", currentUser.uid), {
+                friendRequests: updatedRequests
+            });
+        }
+
+        // إنشاء أو تحديد محادثة
+        async function createOrSelectChat(friendId) {
+            // البحث عن محادثة موجودة مع هذا الصديق
+            const existingChat = chats.find(chat => 
+                chat.participants.includes(currentUser.uid) && 
+                chat.participants.includes(friendId)
+            );
+            
+            if (existingChat) {
+                selectChat(existingChat);
+            } else {
+                // إنشاء محادثة جديدة
+                try {
+                    const newChatRef = await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "chats"), {
+                        participants: [currentUser.uid, friendId],
+                        createdAt: window.firebaseServerTimestamp(),
+                        lastMessage: "",
+                        lastMessageTime: window.firebaseServerTimestamp()
+                    });
+                    
+                    const newChat = {
+                        id: newChatRef.id,
+                        participants: [currentUser.uid, friendId],
+                        createdAt: new Date(),
+                        lastMessage: "",
+                        lastMessageTime: new Date()
+                    };
+                    
+                    chats.push(newChat);
+                    selectChat(newChat);
+                } catch (error) {
+                    console.error("خطأ في إنشاء المحادثة:", error);
+                    showNotification('حدث خطأ أثناء إنشاء المحادثة', 'error');
+                }
+            }
+        }
+
+        // تحديد محادثة
+        function selectChat(chat) {
+            selectedChat = chat;
+            
+            // تحديث رأس المحادثة
+            const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
+            currentContactName.textContent = `محادثة مع ${otherParticipantId.substring(0, 5)}`;
+            currentContactAvatar.src = "https://via.placeholder.com/45";
+            currentContactStatus.textContent = "متصل الآن";
+            
+            // تمكين حقل الإدخال
+            messageInput.disabled = false;
+            messageInput.placeholder = "اكتب رسالة...";
+            
+            // تحميل الرسائل
+            loadMessages(chat.id);
+            
+            // إضافة فئة نشطة للمحادثة المحددة
+            document.querySelectorAll('.contact').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.contact[data-id="${chat.id}"]`).classList.add('active');
+            
+            // إخفاء شريط جهات الاتصال على الهواتف المحمولة
+            if (window.innerWidth <= 768) {
+                document.querySelector('.contacts-sidebar').classList.add('hidden');
+            }
+        }
+
+        // تحميل الرسائل
+        async function loadMessages(chatId) {
+            messagesContainer.innerHTML = '';
+            
+            try {
+                const messagesQuery = window.firebaseQuery(
+                    window.firebaseCollection(window.firebaseDb, "messages"),
+                    window.firebaseWhere("chatId", "==", chatId),
+                    window.firebaseOrderBy("timestamp", "asc")
+                );
+                
+                const messagesSnapshot = await window.firebaseGetDocs(messagesQuery);
+                
+                if (messagesSnapshot.empty) {
+                    messagesContainer.innerHTML = '<div class="message received"><p>ابدأ محادثة جديدة</p><div class="message-time">الآن</div></div>';
+                    return;
+                }
+                
+                messagesSnapshot.forEach(doc => {
+                    const message = doc.data();
+                    displayMessage(message);
+                });
+                
+                // التمرير إلى الأسفل لعرض أحدث الرسائل
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // الاستماع للرسائل الجديدة في الوقت الفعلي
+                const unsubscribe = window.firebaseOnSnapshot(messagesQuery, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const message = change.doc.data();
+                            displayMessage(message);
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }
+                    });
+                });
+                
+                // تخزين دالة إلغاء الاشتراك
+                unsubscribeFunctions.push(unsubscribe);
+            } catch (error) {
+                console.error("خطأ في تحميل الرسائل:", error);
+                messagesContainer.innerHTML = '<div class="message received"><p>حدث خطأ في تحميل الرسائل</p><div class="message-time">الآن</div></div>';
+            }
+        }
+
+        // عرض رسالة
+        function displayMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+            
+            const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'الآن';
+            
+            messageElement.innerHTML = `
+                <p>${message.text}</p>
+                <div class="message-time">${time}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+        }
+
+        // إرسال رسالة
+        async function sendMessage() {
+            const messageText = messageInput.value.trim();
+            if (messageText === '' || !selectedChat) return;
+            
+            try {
+                // إضافة الرسالة إلى Firestore
+                await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "messages"), {
+                    chatId: selectedChat.id,
+                    senderId: currentUser.uid,
+                    text: messageText,
+                    timestamp: window.firebaseServerTimestamp()
+                });
+                
+                // تحديث آخر رسالة في المحادثة
+                await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "chats", selectedChat.id), {
+                    lastMessage: messageText,
+                    lastMessageTime: window.firebaseServerTimestamp()
+                });
+                
+                messageInput.value = '';
+            } catch (error) {
+                console.error("خطأ في إرسال الرسالة:", error);
+                showNotification('حدث خطأ أثناء إرسال الرسالة', 'error');
+            }
+        }
+
+        // عرض تطبيق الدردشة
+        function showChatApp() {
+            loginScreen.classList.add('hidden');
+            chatApp.classList.remove('hidden');
+            
+            // تحديث معلومات المستخدم
+            userName.textContent = currentUser.displayName || "المستخدم";
+            userAvatar.src = currentUser.photoURL || "https://via.placeholder.com/40";
+        }
+
+        // عرض شاشة تسجيل الدخول
+        function showLoginScreen() {
+            loginScreen.classList.remove('hidden');
+            chatApp.classList.add('hidden');
+        }
+
+        // عرض إشعار
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // أحداث الإرسال
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // أحداث التبويب
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentTab = tab.getAttribute('data-tab');
+                
+                if (currentTab === 'chats') {
+                    loadChats();
+                } else if (currentTab === 'friends') {
+                    loadFriends();
+                } else if (currentTab === 'requests') {
+                    loadFriendRequests();
+                }
+            });
+        });
+
+        // فتح نافذة إضافة الأصدقاء
+        addFriendBtn.addEventListener('click', () => {
+            addFriendModal.classList.toggle('hidden');
+            if (!addFriendModal.classList.contains('hidden')) {
+                renderUsersList();
+            }
+        });
+
+        // إرسال طلب صداقة عبر البريد الإلكتروني
+        sendFriendRequestBtn.addEventListener('click', async () => {
+            const email = friendEmail.value.trim();
+            if (email === '') return;
+            
+            try {
+                // البحث عن المستخدم بالبريد الإلكتروني
+                const usersQuery = window.firebaseQuery(
+                    window.firebaseCollection(window.firebaseDb, "users"),
+                    window.firebaseWhere("email", "==", email)
+                );
+                
+                const usersSnapshot = await window.firebaseGetDocs(usersQuery);
+                
+                if (usersSnapshot.empty) {
+                    showNotification('لم يتم العثور على مستخدم بهذا البريد الإلكتروني', 'error');
+                    return;
+                }
+                
+                const userDoc = usersSnapshot.docs[0];
+                const userId = userDoc.id;
+                
+                // إرسال طلب الصداقة
+                await sendFriendRequest(userId);
+                friendEmail.value = '';
+            } catch (error) {
+                console.error("خطأ في إرسال طلب الصداقة:", error);
+                showNotification('حدث خطأ أثناء إرسال طلب الصداقة', 'error');
+            }
+        });
+
+        // تبديل شريط جهات الاتصال على الهواتف المحمولة
+        menuToggle.addEventListener('click', () => {
+            document.querySelector('.contacts-sidebar').classList.toggle('hidden');
+        });
+
+        // إغلاق نافذة إضافة الأصدقاء عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            if (!addFriendModal.contains(e.target) && e.target !== addFriendBtn) {
+                addFriendModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

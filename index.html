@@ -586,6 +586,12 @@
             max-width: 400px;
             line-height: 1.6;
         }
+
+        .messages-loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -726,6 +732,7 @@
         let allUsers = [];
         let chats = [];
         let unsubscribeFunctions = [];
+        let currentMessagesUnsubscribe = null;
 
         // تسجيل الدخول باستخدام جيميل
         googleLoginBtn.addEventListener('click', async () => {
@@ -815,6 +822,10 @@
                 // إلغاء الاشتراك في جميع المستمعين
                 unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
                 unsubscribeFunctions = [];
+                if (currentMessagesUnsubscribe) {
+                    currentMessagesUnsubscribe();
+                    currentMessagesUnsubscribe = null;
+                }
             }
         });
 
@@ -1072,48 +1083,48 @@
             }
         }
 
-        // تحميل الرسائل
+        // تحميل الرسائل - الإصلاح الرئيسي هنا
         async function loadMessages(chatId) {
-            messagesContainer.innerHTML = '';
+            // إلغاء الاشتراك السابق إذا كان موجوداً
+            if (currentMessagesUnsubscribe) {
+                currentMessagesUnsubscribe();
+            }
+            
+            messagesContainer.innerHTML = '<div class="messages-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرسائل...</div>';
             
             try {
                 const messagesQuery = db.collection("messages")
                     .where("chatId", "==", chatId)
                     .orderBy("timestamp", "asc");
                 
-                const messagesSnapshot = await messagesQuery.get();
-                
-                if (messagesSnapshot.empty) {
-                    messagesContainer.innerHTML = '<div class="message received"><p>ابدأ محادثة جديدة</p><div class="message-time">الآن</div></div>';
-                    return;
-                }
-                
-                messagesSnapshot.forEach(doc => {
-                    const message = doc.data();
-                    displayMessage(message);
-                });
-                
-                // التمرير إلى الأسفل لعرض أحدث الرسائل
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
-                // الاستماع للرسائل الجديدة في الوقت الفعلي
-                const unsubscribe = messagesQuery.onSnapshot((snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            const message = change.doc.data();
-                            displayMessage(message);
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                // استخدام onSnapshot للاستماع للتحديثات في الوقت الفعلي
+                currentMessagesUnsubscribe = messagesQuery.onSnapshot(
+                    (snapshot) => {
+                        messagesContainer.innerHTML = '';
+                        
+                        if (snapshot.empty) {
+                            messagesContainer.innerHTML = '<div class="message received"><p>ابدأ محادثة جديدة</p><div class="message-time">الآن</div></div>';
+                            return;
                         }
-                    });
-                }, (error) => {
-                    console.error("خطأ في الاستماع للرسائل:", error);
-                });
-                
-                // تخزين دالة إلغاء الاشتراك
-                unsubscribeFunctions.push(unsubscribe);
+                        
+                        snapshot.forEach(doc => {
+                            const message = doc.data();
+                            displayMessage(message);
+                        });
+                        
+                        // التمرير إلى الأسفل لعرض أحدث الرسائل
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    },
+                    (error) => {
+                        console.error("خطأ في تحميل الرسائل:", error);
+                        messagesContainer.innerHTML = '<div class="message received"><p>حدث خطأ في تحميل الرسائل</p><div class="message-time">الآن</div></div>';
+                        showNotification('حدث خطأ في تحميل الرسائل', 'error');
+                    }
+                );
             } catch (error) {
                 console.error("خطأ في تحميل الرسائل:", error);
                 messagesContainer.innerHTML = '<div class="message received"><p>حدث خطأ في تحميل الرسائل</p><div class="message-time">الآن</div></div>';
+                showNotification('حدث خطأ في تحميل الرسائل', 'error');
             }
         }
 
@@ -1259,6 +1270,14 @@
                 document.querySelector('.contacts-sidebar').classList.remove('active');
                 mobileOverlay.classList.remove('active');
             }
+        });
+
+        // إضافة مؤشر تحميل عند إرسال الرسالة
+        sendButton.addEventListener('click', () => {
+            sendButton.classList.add('loading');
+            setTimeout(() => {
+                sendButton.classList.remove('loading');
+            }, 1000);
         });
     </script>
 </body>
